@@ -9,46 +9,29 @@ extern crate rusqlite;
 extern crate serde_derive;
 extern crate serde_json;
 
-use std::thread;
-use r2d2_sqlite::SqliteConnectionManager;
 use actix::prelude::*;
 use actix_web::{
     http, server, App, AsyncResponder, Error, FutureResponse, HttpRequest, HttpResponse, Json,
     State,
 };
 use futures::future::Future;
-use rusqlite::Connection;
-use serde_derive::{Deserialize, Serialize};
+use r2d2_sqlite::SqliteConnectionManager;
+use std::sync::Arc;
 
 mod db;
-mod resolvers;
-mod schema;
+mod graphql;
 
-use schema::{create_schema, Schema};
+use db::DBExecutor;
+use graphql::schema::create_schema;
+use graphql::{GraphQLData, GraphQLExecutor};
 
 const ADDRESS: &'static str = "localhost:8088";
 const DB_PATH: &'static str = "./poker-v2.db";
+const NUM_THREADS: usize = 3;
 
 struct AppState {
-    executor: Addr<GraphQLExecutor>,
-}
-
-impl Actor for GraphQLExecutor {
-    type Context = SyncContext<Self>;
-}
-
-struct GraphQLExecutor {
-    schema: std::sync::Arc<Schema>,
-}
-
-impl GraphQLExecutor {
-    fn new(schema: std::sync::Arc<Schema>) -> GraphQLExecutor {
-        GraphQLExecutor { schema: schema }
-    }
-}
-
-impl Message for GraphQLData {
-    type Result = Result<String, Error>;
+    graphql_exe: Addr<GraphQLExecutor>,
+    db_exe: Addr<DBExecutor>,
 }
 
 fn graphiql(_req: &HttpRequest<AppState>) -> Result<HttpResponse, Error> {
@@ -59,21 +42,9 @@ fn graphiql(_req: &HttpRequest<AppState>) -> Result<HttpResponse, Error> {
         .body(html))
 }
 
-impl Handler<GraphQLData> for GraphQLExecutor {
-    type Result = Result<String, Error>;
-
-    fn handle(&mut self, msg: GraphQLData, _: &mut Self::Context) -> Self::Result {
-        let res = msg.0.execute(&self.schema, &());
-        let res_text = serde_json::to_string(&res)?;
-        Ok(res_text)
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct GraphQLData(juniper::http::GraphQLRequest);
-
-fn graphql((st, data): (State<AppState>, Json<GraphQLData>)) -> FutureResponse<HttpResponse> {
-    st.executor
+fn graphql((state, data): (State<AppState>, Json<GraphQLData>)) -> FutureResponse<HttpResponse> {
+    state
+        .graphql_exe
         .send(data.0)
         .from_err()
         .and_then(|res| match res {
@@ -81,11 +52,8 @@ fn graphql((st, data): (State<AppState>, Json<GraphQLData>)) -> FutureResponse<H
                 .content_type("application/json")
                 .body(user)),
             Err(_) => Ok(HttpResponse::InternalServerError().into()),
-        }).responder()
-}
-
-fn respond_ok(_req: &HttpRequest<AppState>) -> HttpResponse {
-    HttpResponse::Ok().finish()
+        })
+        .responder()
 }
 
 fn main() {
@@ -95,15 +63,27 @@ fn main() {
 
     // Actor root system
     let system = actix::System::new("poker-v2");
-    let schema = std::sync::Arc::new(create_schema());
-    let addr = SyncArbiter::start(3, move || GraphQLExecutor::new(schema.clone()));
 
+    // Start DB Actor
+    let db_addr = SyncArbiter::start(NUM_THREADS, move || DBExecutor(pool.clone()));
+    let graphql_db_addr = db_addr.clone();
+
+    // Graphql Actor setup
+    let schema = Arc::new(create_schema());
+    let graphql_addr = SyncArbiter::start(NUM_THREADS, move || {
+        GraphQLExecutor::new(schema.clone(), graphql_db_addr.clone())
+    });
+
+    // Actix-web Server routing
     server::new(move || {
         App::with_state(AppState {
-            executor: addr.clone(),
-        }).resource("/graphql", |r| r.method(http::Method::POST).with(graphql))
+            graphql_exe: graphql_addr.clone(),
+            db_exe: db_addr.clone(),
+        })
+        .resource("/graphql", |r| r.method(http::Method::POST).with(graphql))
         .resource("/graphiql", |r| r.method(http::Method::GET).h(graphiql))
-    }).bind(ADDRESS)
+    })
+    .bind(ADDRESS)
     .unwrap()
     .start();
 
