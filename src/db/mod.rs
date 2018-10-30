@@ -8,17 +8,20 @@ use graphql::entities::Player;
 pub type Pool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 pub type Connection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
 
+#[derive(Debug)]
 pub struct DBExecutor(pub Pool);
 
 impl Actor for DBExecutor {
     type Context = SyncContext<Self>;
 }
 
-enum Messages {
-    GetPlayerById { user_id: String },
+#[derive(Debug)]
+pub enum Messages {
+    GetPlayerById(String),
 }
 
-enum Responses {
+#[derive(Debug)]
+pub enum Responses {
     Player(Option<Player>),
 }
 
@@ -35,13 +38,15 @@ impl Handler<Messages> for DBExecutor {
             .get()
             .expect("Failed to get database connection from pool");
 
+        println!("GOT MESSAGE");
+
         match msg {
-            Messages::GetPlayerById { user_id } => get_user(db, user_id),
+            Messages::GetPlayerById(user_id) => get_player_by_id(db, user_id),
         }
     }
 }
 
-fn get_user(conn: Connection, user_id: String) -> Result<Responses, Error> {
+fn get_player_by_id(conn: Connection, user_id: String) -> Result<Responses, Error> {
     let stmt = "SELECT * FROM player WHERE userId=1";
 
     let mut prep_stmt = conn.prepare(stmt)?;

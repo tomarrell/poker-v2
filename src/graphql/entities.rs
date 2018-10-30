@@ -2,7 +2,7 @@ extern crate juniper;
 
 use juniper::{GraphQLObject};
 
-#[derive(GraphQLObject)]
+#[derive(GraphQLObject, Debug)]
 pub struct Player {
     pub id: String,
     pub name: String,
@@ -13,7 +13,7 @@ pub struct Player {
     pub total_buyin: i32,
 }
 
-#[derive(GraphQLObject)]
+#[derive(GraphQLObject, Debug)]
 pub struct Realm {
     pub id: String,
     pub name: String,
@@ -22,7 +22,7 @@ pub struct Realm {
     pub sessions: Vec<Session>,
 }
 
-#[derive(GraphQLObject)]
+#[derive(GraphQLObject, Debug)]
 pub struct Session {
     pub id: String,
     pub realm_id: String,
@@ -31,7 +31,7 @@ pub struct Session {
     pub player_sessions: Vec<PlayerSession>,
 }
 
-#[derive(GraphQLObject)]
+#[derive(GraphQLObject, Debug)]
 pub struct PlayerSession {
     pub player: Player,
     pub player_id: String,

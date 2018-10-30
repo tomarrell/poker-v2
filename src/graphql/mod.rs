@@ -7,12 +7,20 @@ pub mod entities;
 mod resolvers;
 pub mod schema;
 
-use super::db::DBExecutor;
 use self::schema::Schema;
+use super::db::DBExecutor;
+
+// Context to be shared amongst GraphQL Requests
+pub struct Context {
+    db: Addr<DBExecutor>,
+}
+
+impl juniper::Context for Context {}
 
 // Setup GraphQL Executor Actor
 pub struct GraphQLExecutor {
     schema: Arc<Schema>,
+    db: Addr<DBExecutor>,
 }
 
 impl Actor for GraphQLExecutor {
@@ -21,7 +29,10 @@ impl Actor for GraphQLExecutor {
 
 impl GraphQLExecutor {
     pub fn new(schema: Arc<Schema>, db_exe: Addr<DBExecutor>) -> GraphQLExecutor {
-        GraphQLExecutor { schema: schema }
+        GraphQLExecutor {
+            schema: schema,
+            db: db_exe,
+        }
     }
 }
 
@@ -37,8 +48,13 @@ impl Handler<GraphQLData> for GraphQLExecutor {
     // Executor will always return serialized JSON response
     type Result = Result<String, Error>;
 
-    fn handle(&mut self, msg: GraphQLData, _: &mut Self::Context) -> Self::Result {
-        let res = msg.0.execute(&self.schema, &());
+    fn handle(&mut self, msg: GraphQLData, ctx: &mut Self::Context) -> Self::Result {
+        let res = msg.0.execute(
+            &self.schema,
+            &Context {
+                db: self.db.clone(),
+            },
+        );
         let res_text = serde_json::to_string(&res)?;
         Ok(res_text)
     }

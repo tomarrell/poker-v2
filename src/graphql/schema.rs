@@ -1,23 +1,26 @@
+extern crate actix;
 extern crate juniper;
 
 use juniper::{FieldResult, RootNode};
 
 use super::entities::Player;
 use super::resolvers::get_player;
+use super::Context;
 
 // Queries
 pub struct QueryRoot;
 
-graphql_object!(QueryRoot: () |&self| {
-    field player(user_id: String) -> FieldResult<Option<Player>> {
-        get_player(user_id)
+graphql_object!(QueryRoot: Context |&self| {
+    field player(&executor, user_id: String) -> FieldResult<Option<Player>> {
+        let db = executor.context().db.clone();
+        get_player(db, user_id)
     }
 });
 
 // Mutations
 pub struct MutationRoot;
 
-graphql_object!(MutationRoot: () |&self| {
+graphql_object!(MutationRoot: Context |&self| {
     field create_player(&executor) -> FieldResult<()> {
         Ok(())
     }
