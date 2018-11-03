@@ -26,7 +26,7 @@ use graphql::schema::create_schema;
 use graphql::{GraphQLData, GraphQLExecutor};
 
 const ADDRESS: &'static str = "localhost:8088";
-const DB_PATH: &'static str = "./poker-v2.db";
+const DB_PATH: &'static str = "./poker.db";
 const NUM_THREADS: usize = 3;
 
 struct AppState {

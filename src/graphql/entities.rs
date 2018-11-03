@@ -2,40 +2,144 @@ extern crate juniper;
 
 use juniper::{GraphQLObject};
 
-#[derive(GraphQLObject, Debug)]
+#[derive(Debug)]
 pub struct Player {
-    pub id: String,
+    pub id: i32,
     pub name: String,
-    pub realm_id: String,
+    pub realm_id: i32,
     pub sessions: Vec<PlayerSession>,
     pub historical_balance: i32,
     pub real_balance: i32,
     pub total_buyin: i32,
 }
 
-#[derive(GraphQLObject, Debug)]
+graphql_object!(Player: () |&self| {
+    description: "A player of a game"
+
+    field id() -> i32 as "The unique id of a Player" {
+        self.id
+    }
+
+    field name() -> String as "The name of a Player" {
+        self.name
+    }
+
+    field realm_id() -> i32 as "The id of the Realm the Player is within" {
+        self.realm_id
+    }
+
+    field sessions() -> Vec<Session> as "The sessions the Player has participated in" {
+        unimplemented!()
+    }
+
+    field historical_balance() -> i32 as "The amount of money a Player has won or lost in total, does not include rebalances" {
+        self.historical_balance
+    }
+
+    field real_balance() -> i32 as "The amount of money a Player has won or lost in addition to any rebalances the player has made" {
+        self.real_balance
+    }
+
+    field total_buyin() -> i32 as "The total amount of money the Player has bought in with" {
+        self.total_buyin
+    }
+});
+
+#[derive(Debug)]
 pub struct Realm {
-    pub id: String,
+    pub id: i32,
     pub name: String,
     pub title: String,
     pub players: Vec<Player>,
     pub sessions: Vec<Session>,
 }
 
-#[derive(GraphQLObject, Debug)]
+graphql_object!(Realm: () |&self| {
+    description: "A 'world' for a specific recurring series of games to be played"
+
+    field id() -> i32 as "The id of the Realm" {
+        self.id
+    }
+
+    field name() -> String as "The name of the Realm" {
+        self.name
+    }
+
+    field title() -> String as "A user changeable title for the Realm" {
+        self.title
+    }
+
+    field players() -> Vec<Player> as "A list of all the Players in the Realm" {
+        unimplemented!()
+    }
+
+    field sessions() -> Vec<Session> as "A list of all the Sessions played within the Realm" {
+        unimplemented!()
+    }
+});
+
+#[derive(Debug)]
 pub struct Session {
-    pub id: String,
-    pub realm_id: String,
+    pub id: i32,
+    pub realm_id: i32,
     pub name: String,
     pub time: String,
     pub player_sessions: Vec<PlayerSession>,
 }
 
-#[derive(GraphQLObject, Debug)]
+graphql_object!(Session: () |&self| {
+    description: "A game single instance of a game being played"
+
+    field id() -> i32 as "The id of the Session which was played" {
+        self.id
+    }
+
+    field realm_id() -> i32 as "The realm id which the Session was played under" {
+        self.realm_id
+    }
+
+    field name() -> String as "The name of the Session" {
+        self.name
+    }
+
+    field time() -> String as "The time the session occurred" {
+        self.time
+    }
+
+    field player_sessions() -> Vec<PlayerSession> as "The list of Players who participated in this Session" {
+        unimplemented!()
+    }
+});
+
+#[derive(Debug)]
 pub struct PlayerSession {
     pub player: Player,
-    pub player_id: String,
-    pub sessions_id: String,
+    pub player_id: i32,
+    pub session_id: i32,
     pub buyin: i32,
     pub walkout: i32,
 }
+
+graphql_object!(PlayerSession: () |&self| {
+    description: "A participation by a Player in a Session"
+
+    field player() -> Player as "The Player who participated in the Session" {
+        unimplemented!()
+    }
+
+    field player_id() -> i32 as "The id of a Player who participated in a Session" {
+        self.player_id
+    }
+
+    field session_id() -> i32 as "The id of the Session which was participated in" {
+        self.session_id
+    }
+
+    field buyin() -> i32 as "The amount of money the Player bought in with" {
+        self.buyin
+    }
+
+    field buyin() -> i32 as "The amount of money the Player walked out with" {
+        self.walkout
+    }
+});

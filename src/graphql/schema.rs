@@ -11,7 +11,7 @@ use super::Context;
 pub struct QueryRoot;
 
 graphql_object!(QueryRoot: Context |&self| {
-    field player(&executor, user_id: String) -> FieldResult<Option<Player>> {
+    field player(&executor, user_id: i32) -> FieldResult<Option<Player>> {
         let db = executor.context().db.clone();
         get_player(db, user_id)
     }

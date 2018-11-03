@@ -1,28 +1,25 @@
 extern crate actix;
 
 use actix::prelude::*;
-use juniper::FieldResult;
 use futures::Future;
+use juniper::FieldResult;
 
-use super::entities::Player;
-use super::super::db::{DBExecutor, Messages, Responses};
+use graphql::entities::Player;
+use db::{DBExecutor, Messages, Responses};
 
-pub fn get_player(db: Addr<DBExecutor>, user_id: String) -> FieldResult<Option<Player>> {
-    println!("{:?}", db);
-
-    db.send(Messages::GetPlayerById(user_id))
+pub fn get_player(db: Addr<DBExecutor>, user_id: i32) -> FieldResult<Option<Player>> {
+    let response = db
+        .send(Messages::GetPlayerById(user_id))
+        .wait()
         .and_then(|res| {
-            println!("Some stuff: {:?}", res);
-            Ok(res)
-        }).wait();
+            let db_value = res.expect("DBExecutor failed to execute DB query.");
 
-    Ok(Some(Player {
-        id: "123".to_owned(),
-        name: "Tom Arrell".to_owned(),
-        realm_id: "movio".to_owned(),
-        sessions: vec![],
-        historical_balance: 100,
-        real_balance: 50,
-        total_buyin: 200,
-    }))
+            match db_value {
+                Responses::Player(player) => Ok(player),
+            }
+        })
+        .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");
+
+
+
 }
