@@ -3,9 +3,7 @@ use r2d2;
 use r2d2_sqlite;
 use rusqlite::Error;
 
-mod model;
-
-use self::model::DbPlayer;
+use graphql::entities::Player;
 
 pub type Pool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 pub type Connection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
@@ -24,7 +22,7 @@ pub enum Messages {
 
 #[derive(Debug)]
 pub enum Responses {
-    Player(Option<DbPlayer>),
+    Player(Option<Player>),
 }
 
 impl Message for Messages {
@@ -54,7 +52,7 @@ fn get_player_by_id(conn: Connection, user_id: i32) -> Result<Responses, Error> 
 
     let mut prep_stmt = conn.prepare(stmt)?;
     let user = prep_stmt.query_row(&[&user_id], |row| {
-        DbPlayer {
+        Player {
             id: row.get(0),
             name: row.get(1),
             realm_id: row.get(2),

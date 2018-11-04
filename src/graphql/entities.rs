@@ -7,10 +7,7 @@ pub struct Player {
     pub id: i32,
     pub name: String,
     pub realm_id: i32,
-    pub sessions: Vec<PlayerSession>,
-    pub historical_balance: i32,
-    pub real_balance: i32,
-    pub total_buyin: i32,
+    pub utc_created_at: String,
 }
 
 graphql_object!(Player: () |&self| {
@@ -20,28 +17,28 @@ graphql_object!(Player: () |&self| {
         self.id
     }
 
-    field name() -> String as "The name of a Player" {
-        self.name
+    field name() -> &str as "The name of a Player" {
+        &self.name
     }
 
     field realm_id() -> i32 as "The id of the Realm the Player is within" {
         self.realm_id
     }
 
-    field sessions() -> Vec<Session> as "The sessions the Player has participated in" {
+    field sessions() -> Vec<PlayerSession> as "The sessions the Player has participated in" {
         unimplemented!()
     }
 
     field historical_balance() -> i32 as "The amount of money a Player has won or lost in total, does not include rebalances" {
-        self.historical_balance
+        unimplemented!()
     }
 
     field real_balance() -> i32 as "The amount of money a Player has won or lost in addition to any rebalances the player has made" {
-        self.real_balance
+        unimplemented!()
     }
 
     field total_buyin() -> i32 as "The total amount of money the Player has bought in with" {
-        self.total_buyin
+        unimplemented!()
     }
 });
 
@@ -50,8 +47,7 @@ pub struct Realm {
     pub id: i32,
     pub name: String,
     pub title: String,
-    pub players: Vec<Player>,
-    pub sessions: Vec<Session>,
+    pub utc_created_at: String,
 }
 
 graphql_object!(Realm: () |&self| {
@@ -61,12 +57,12 @@ graphql_object!(Realm: () |&self| {
         self.id
     }
 
-    field name() -> String as "The name of the Realm" {
-        self.name
+    field name() -> &str as "The name of the Realm" {
+        &self.name
     }
 
-    field title() -> String as "A user changeable title for the Realm" {
-        self.title
+    field title() -> &str as "A user changeable title for the Realm" {
+        &self.title
     }
 
     field players() -> Vec<Player> as "A list of all the Players in the Realm" {
@@ -84,7 +80,7 @@ pub struct Session {
     pub realm_id: i32,
     pub name: String,
     pub time: String,
-    pub player_sessions: Vec<PlayerSession>,
+    pub utc_created_at: String,
 }
 
 graphql_object!(Session: () |&self| {
@@ -98,12 +94,12 @@ graphql_object!(Session: () |&self| {
         self.realm_id
     }
 
-    field name() -> String as "The name of the Session" {
-        self.name
+    field name() -> &str as "The name of the Session" {
+        &self.name
     }
 
-    field time() -> String as "The time the session occurred" {
-        self.time
+    field time() -> &str as "The time the session occurred" {
+        &self.time
     }
 
     field player_sessions() -> Vec<PlayerSession> as "The list of Players who participated in this Session" {
@@ -113,11 +109,11 @@ graphql_object!(Session: () |&self| {
 
 #[derive(Debug)]
 pub struct PlayerSession {
-    pub player: Player,
     pub player_id: i32,
     pub session_id: i32,
     pub buyin: i32,
     pub walkout: i32,
+    pub utc_created_at: String,
 }
 
 graphql_object!(PlayerSession: () |&self| {

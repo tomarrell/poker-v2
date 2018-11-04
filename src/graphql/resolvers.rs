@@ -4,8 +4,8 @@ use actix::prelude::*;
 use futures::Future;
 use juniper::FieldResult;
 
-use graphql::entities::Player;
 use db::{DBExecutor, Messages, Responses};
+use graphql::entities::Player;
 
 pub fn get_player(db: Addr<DBExecutor>, user_id: i32) -> FieldResult<Option<Player>> {
     let response = db
@@ -20,6 +20,5 @@ pub fn get_player(db: Addr<DBExecutor>, user_id: i32) -> FieldResult<Option<Play
         })
         .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");
 
-
-
+    Ok(response)
 }
