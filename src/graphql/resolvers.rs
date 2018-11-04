@@ -16,6 +16,7 @@ pub fn get_player(db: Addr<DBExecutor>, user_id: i32) -> FieldResult<Option<Play
 
             match db_value {
                 Responses::Player(player) => Ok(player),
+                _ => panic!(),
             }
         })
         .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");

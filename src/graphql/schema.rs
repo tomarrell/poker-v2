@@ -5,7 +5,7 @@ use juniper::{FieldResult, RootNode};
 
 use super::entities::Player;
 use super::resolvers::get_player;
-use super::Context;
+use graphql::Context;
 
 // Queries
 pub struct QueryRoot;

@@ -1,6 +1,9 @@
 extern crate juniper;
 
-use juniper::{GraphQLObject};
+use futures::Future;
+
+use db::{Messages, Responses};
+use graphql::Context;
 
 #[derive(Debug)]
 pub struct Player {
@@ -10,7 +13,7 @@ pub struct Player {
     pub utc_created_at: String,
 }
 
-graphql_object!(Player: () |&self| {
+graphql_object!(Player: Context |&self| {
     description: "A player of a game"
 
     field id() -> i32 as "The unique id of a Player" {
@@ -37,8 +40,22 @@ graphql_object!(Player: () |&self| {
         unimplemented!()
     }
 
-    field total_buyin() -> i32 as "The total amount of money the Player has bought in with" {
-        unimplemented!()
+    field total_buyin(&executor) -> i32 as "The total amount of money the Player has bought in with" {
+        let result = executor
+            .context()
+            .db
+            .send(Messages::GetBuyinByPlayerId(self.id))
+            .wait()
+            .and_then(|res| {
+                let db_value = res.expect("DBExecutor failed to execute DB query");
+                match db_value {
+                    Responses::PlayerBuyin(amount) => Ok(amount),
+                    _ => panic!(),
+                }
+            })
+            .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");
+
+        result
     }
 });
 
@@ -50,7 +67,7 @@ pub struct Realm {
     pub utc_created_at: String,
 }
 
-graphql_object!(Realm: () |&self| {
+graphql_object!(Realm: Context |&self| {
     description: "A 'world' for a specific recurring series of games to be played"
 
     field id() -> i32 as "The id of the Realm" {
@@ -83,7 +100,7 @@ pub struct Session {
     pub utc_created_at: String,
 }
 
-graphql_object!(Session: () |&self| {
+graphql_object!(Session: Context |&self| {
     description: "A game single instance of a game being played"
 
     field id() -> i32 as "The id of the Session which was played" {
@@ -116,7 +133,7 @@ pub struct PlayerSession {
     pub utc_created_at: String,
 }
 
-graphql_object!(PlayerSession: () |&self| {
+graphql_object!(PlayerSession: Context |&self| {
     description: "A participation by a Player in a Session"
 
     field player() -> Player as "The Player who participated in the Session" {
