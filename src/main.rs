@@ -48,9 +48,9 @@ fn graphql((state, data): (State<AppState>, Json<GraphQLData>)) -> FutureRespons
         .send(data.0)
         .from_err()
         .and_then(|res| match res {
-            Ok(user) => Ok(HttpResponse::Ok()
+            Ok(resp) => Ok(HttpResponse::Ok()
                 .content_type("application/json")
-                .body(user)),
+                .body(resp)),
             Err(_) => Ok(HttpResponse::InternalServerError().into()),
         })
         .responder()
