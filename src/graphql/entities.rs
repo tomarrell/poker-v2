@@ -2,6 +2,8 @@ extern crate juniper;
 
 use futures::Future;
 
+use super::query_db;
+
 use db::{Messages, Responses};
 use graphql::Context;
 
@@ -32,12 +34,31 @@ graphql_object!(Player: Context |&self| {
         unimplemented!()
     }
 
-    field historical_balance() -> i32 as "The amount of money a Player has won or lost in total, does not include rebalances" {
-        unimplemented!()
+    field historical_balance(&executor) -> i32 as "The amount of money a Player has won or lost in total, does not include rebalances" {
+        let result = query_db(executor, Messages::GetHistoricalBalanceByPlayerId(self.id));
+
+        match result {
+            Ok(Responses::PlayerBalance(amount)) => amount,
+            _ => panic!("Actor returned unexpected message"),
+        }
     }
 
-    field real_balance() -> i32 as "The amount of money a Player has won or lost in addition to any rebalances the player has made" {
-        unimplemented!()
+    field real_balance(&executor) -> i32 as "The amount of money a Player has won or lost in addition to any rebalances the player has made" {
+        let result = executor
+            .context()
+            .db
+            .send(Messages::GetRealBalanceByPlayerId(self.id))
+            .wait()
+            .and_then(|res| {
+                let db_value = res.expect("DBExecutor failed to execute DB query");
+                match db_value {
+                    Responses::PlayerBalance(amount) => Ok(amount),
+                    _ => panic!("Actor returned unexpected message"),
+                }
+            })
+            .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");
+
+        result
     }
 
     field total_buyin(&executor) -> i32 as "The total amount of money the Player has bought in with" {
@@ -49,7 +70,7 @@ graphql_object!(Player: Context |&self| {
             .and_then(|res| {
                 let db_value = res.expect("DBExecutor failed to execute DB query");
                 match db_value {
-                    Responses::PlayerBuyin(amount) => Ok(amount),
+                    Responses::PlayerBalance(amount) => Ok(amount),
                     _ => panic!("Actor returned unexpected message"),
                 }
             })

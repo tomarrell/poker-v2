@@ -31,7 +31,6 @@ const NUM_THREADS: usize = 3;
 
 struct AppState {
     graphql_exe: Addr<GraphQLExecutor>,
-    db_exe: Addr<DBExecutor>,
 }
 
 fn graphiql(_req: &HttpRequest<AppState>) -> Result<HttpResponse, Error> {
@@ -78,7 +77,6 @@ fn main() {
     server::new(move || {
         App::with_state(AppState {
             graphql_exe: graphql_addr.clone(),
-            db_exe: db_addr.clone(),
         })
         .resource("/graphql", |r| r.method(http::Method::POST).with(graphql))
         .resource("/graphiql", |r| r.method(http::Method::GET).h(graphiql))

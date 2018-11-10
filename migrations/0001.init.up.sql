@@ -39,7 +39,7 @@ CREATE TABLE player_session(
 CREATE TABLE transfer(
   id             INTEGER PRIMARY KEY,
   player_id      INTEGER NOT NULL,
-  session_id     INTEGER NOT NULL,
+  session_id     INTEGER,
   amount         INTEGER NOT NULL,
   reason         TEXT NOT NULL,
   utc_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,

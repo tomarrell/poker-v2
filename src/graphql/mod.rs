@@ -2,13 +2,14 @@ use actix::prelude::*;
 use actix_web::Error;
 use serde_derive::{Deserialize, Serialize};
 use std::sync::Arc;
+use futures::Future;
 
 pub mod entities;
 mod resolvers;
 pub mod schema;
 
 use self::schema::Schema;
-use super::db::DBExecutor;
+use db::{DBExecutor, Messages, Responses};
 
 // Context to be shared amongst GraphQL Requests
 pub struct Context {
@@ -48,7 +49,7 @@ impl Handler<GraphQLData> for GraphQLExecutor {
     // Executor will always return serialized JSON response
     type Result = Result<String, Error>;
 
-    fn handle(&mut self, msg: GraphQLData, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: GraphQLData, _ctx: &mut Self::Context) -> Self::Result {
         let res = msg.0.execute(
             &self.schema,
             &Context {
@@ -58,4 +59,21 @@ impl Handler<GraphQLData> for GraphQLExecutor {
         let res_text = serde_json::to_string(&res)?;
         Ok(res_text)
     }
+}
+
+pub fn query_db(
+    executor: &&juniper::Executor<'_, Context>,
+    message: Messages,
+) -> Result<Responses, Error> {
+    let result = executor
+        .context()
+        .db
+        .send(message)
+        .wait()
+        .and_then(|res| {
+            Ok(res.expect("DBExecutor failed to execute DB query"))
+        })
+        .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");
+
+    Ok(result)
 }

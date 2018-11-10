@@ -5,6 +5,9 @@ use rusqlite::Error;
 
 use graphql::entities::Player;
 
+mod queries;
+use self::queries::*;
+
 pub type Pool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 pub type Connection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
 
@@ -19,12 +22,14 @@ impl Actor for DBExecutor {
 pub enum Messages {
     GetPlayerById(i32),
     GetBuyinByPlayerId(i32),
+    GetHistoricalBalanceByPlayerId(i32),
+    GetRealBalanceByPlayerId(i32),
 }
 
 #[derive(Debug)]
 pub enum Responses {
     Player(Option<Player>),
-    PlayerBuyin(i32),
+    PlayerBalance(i32),
 }
 
 impl Message for Messages {
@@ -34,7 +39,7 @@ impl Message for Messages {
 impl Handler<Messages> for DBExecutor {
     type Result = Result<Responses, Error>;
 
-    fn handle(&mut self, msg: Messages, ctx: &mut SyncContext<Self>) -> Self::Result {
+    fn handle(&mut self, msg: Messages, _ctx: &mut SyncContext<Self>) -> Self::Result {
         let db = self
             .0
             .get()
@@ -43,38 +48,13 @@ impl Handler<Messages> for DBExecutor {
         let res = match msg {
             Messages::GetPlayerById(id) => get_player_by_id(db, id),
             Messages::GetBuyinByPlayerId(id) => get_buyin_by_player_id(db, id),
+            Messages::GetHistoricalBalanceByPlayerId(id) => {
+                get_historical_balance_by_player_id(db, id)
+            }
+            Messages::GetRealBalanceByPlayerId(id) => get_real_balance_by_player_id(db, id),
         }
         .expect("DB query failed");
 
         Ok(res)
-    }
-}
-
-fn get_player_by_id(conn: Connection, user_id: i32) -> Result<Responses, Error> {
-    let stmt = "SELECT * FROM player WHERE id=?";
-
-    let mut prep_stmt = conn.prepare(stmt)?;
-    let user = prep_stmt.query_row(&[&user_id], |row| Player {
-        id: row.get(0),
-        name: row.get(1),
-        realm_id: row.get(2),
-        utc_created_at: row.get(3),
-    });
-
-    match user {
-        Ok(u) => Ok(Responses::Player(Some(u))),
-        Err(_) => Ok(Responses::Player(None)),
-    }
-}
-
-fn get_buyin_by_player_id(conn: Connection, user_id: i32) -> Result<Responses, Error> {
-    let stmt = "SELECT COALESCE(SUM(amount), 0) FROM transfer WHERE player_id=?";
-
-    let mut prep_stmt = conn.prepare(stmt)?;
-    let user: Result<i32, Error> = prep_stmt.query_row(&[&user_id], |row| row.get(0));
-
-    match user {
-        Ok(u) => Ok(Responses::PlayerBuyin(u)),
-        Err(_) => Ok(Responses::PlayerBuyin(0)),
     }
 }

@@ -12,3 +12,7 @@ INSERT INTO player_session(player_id, session_id, buyin, walkout) VALUES(2, 1, 1
 INSERT INTO transfer(player_id, session_id, amount, reason) VALUES(1, 1, 100, "session_participation");
 INSERT INTO transfer(player_id, session_id, amount, reason) VALUES(2, 1, -100, "session_participation");
 
+-- Transfer between Tom and Jane
+INSERT INTO transfer(player_id, amount, reason) VALUES(1, -50, "rebalance");
+INSERT INTO transfer(player_id, amount, reason) VALUES(2, 50, "rebalance");
+
