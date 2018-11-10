@@ -50,7 +50,7 @@ graphql_object!(Player: Context |&self| {
                 let db_value = res.expect("DBExecutor failed to execute DB query");
                 match db_value {
                     Responses::PlayerBuyin(amount) => Ok(amount),
-                    _ => panic!(),
+                    _ => panic!("Actor returned unexpected message"),
                 }
             })
             .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");

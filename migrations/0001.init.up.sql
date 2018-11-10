@@ -25,8 +25,8 @@ CREATE TABLE session(
 );
 
 CREATE TABLE player_session(
-  player_id      INTEGER,
-  session_id     INTEGER,
+  player_id      INTEGER NOT NULL,
+  session_id     INTEGER NOT NULL,
   buyin          INTEGER NOT NULL,
   walkout        INTEGER NOT NULL,
   utc_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,

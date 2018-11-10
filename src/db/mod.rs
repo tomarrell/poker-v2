@@ -54,36 +54,27 @@ fn get_player_by_id(conn: Connection, user_id: i32) -> Result<Responses, Error> 
     let stmt = "SELECT * FROM player WHERE id=?";
 
     let mut prep_stmt = conn.prepare(stmt)?;
-    let user = prep_stmt.query_row(&[&user_id], |row| {
-        Player {
-            id: row.get(0),
-            name: row.get(1),
-            realm_id: row.get(2),
-            utc_created_at: row.get(3),
-        }
+    let user = prep_stmt.query_row(&[&user_id], |row| Player {
+        id: row.get(0),
+        name: row.get(1),
+        realm_id: row.get(2),
+        utc_created_at: row.get(3),
     });
 
     match user {
         Ok(u) => Ok(Responses::Player(Some(u))),
-        Err(e) => Ok(Responses::Player(None)),
+        Err(_) => Ok(Responses::Player(None)),
     }
 }
 
 fn get_buyin_by_player_id(conn: Connection, user_id: i32) -> Result<Responses, Error> {
-    let stmt = "SELECT * FROM player WHERE id=?";
+    let stmt = "SELECT COALESCE(SUM(amount), 0) FROM transfer WHERE player_id=?";
 
     let mut prep_stmt = conn.prepare(stmt)?;
-    let user = prep_stmt.query_row(&[&user_id], |row| {
-        Player {
-            id: row.get(0),
-            name: row.get(1),
-            realm_id: row.get(2),
-            utc_created_at: row.get(3),
-        }
-    });
+    let user: Result<i32, Error> = prep_stmt.query_row(&[&user_id], |row| row.get(0));
 
     match user {
-        Ok(u) => Ok(Responses::Player(Some(u))),
-        Err(e) => Ok(Responses::Player(None)),
+        Ok(u) => Ok(Responses::PlayerBuyin(u)),
+        Err(_) => Ok(Responses::PlayerBuyin(0)),
     }
 }
