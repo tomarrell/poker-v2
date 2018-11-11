@@ -3,7 +3,7 @@ use r2d2;
 use r2d2_sqlite;
 use rusqlite::Error;
 
-use graphql::entities::Player;
+use graphql::entities::*;
 
 mod queries;
 use self::queries::*;
@@ -24,12 +24,14 @@ pub enum Messages {
     GetBuyinByPlayerId(i32),
     GetHistoricalBalanceByPlayerId(i32),
     GetRealBalanceByPlayerId(i32),
+    GetPlayerSessionsByPlayerId(i32),
 }
 
 #[derive(Debug)]
 pub enum Responses {
     Player(Option<Player>),
     PlayerBalance(i32),
+    PlayerSessions(Vec<PlayerSession>),
 }
 
 impl Message for Messages {
@@ -52,6 +54,7 @@ impl Handler<Messages> for DBExecutor {
                 get_historical_balance_by_player_id(db, id)
             }
             Messages::GetRealBalanceByPlayerId(id) => get_real_balance_by_player_id(db, id),
+            Messages::GetPlayerSessionsByPlayerId(id) => get_player_sessions_by_player_id(db, id),
         }
         .expect("DB query failed");
 

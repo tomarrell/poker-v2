@@ -1,7 +1,5 @@
 extern crate juniper;
 
-use futures::Future;
-
 use super::query_db;
 
 use db::{Messages, Responses};
@@ -30,8 +28,17 @@ graphql_object!(Player: Context |&self| {
         self.realm_id
     }
 
-    field sessions() -> Vec<PlayerSession> as "The sessions the Player has participated in" {
-        unimplemented!()
+    field utc_created_at() -> &str as "The date the PlayerSession was created" {
+        &self.utc_created_at
+    }
+
+    field player_sessions(&executor) -> Vec<PlayerSession> as "The sessions the Player has participated in" {
+        let result = query_db(executor, Messages::GetPlayerSessionsByPlayerId(self.id));
+
+        match result {
+            Ok(Responses::PlayerSessions(player_sessions)) => player_sessions,
+            _ => panic!("Actor returned unexpected message"),
+        }
     }
 
     field historical_balance(&executor) -> i32 as "The amount of money a Player has won or lost in total, does not include rebalances" {
@@ -44,39 +51,21 @@ graphql_object!(Player: Context |&self| {
     }
 
     field real_balance(&executor) -> i32 as "The amount of money a Player has won or lost in addition to any rebalances the player has made" {
-        let result = executor
-            .context()
-            .db
-            .send(Messages::GetRealBalanceByPlayerId(self.id))
-            .wait()
-            .and_then(|res| {
-                let db_value = res.expect("DBExecutor failed to execute DB query");
-                match db_value {
-                    Responses::PlayerBalance(amount) => Ok(amount),
-                    _ => panic!("Actor returned unexpected message"),
-                }
-            })
-            .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");
+        let result = query_db(executor, Messages::GetRealBalanceByPlayerId(self.id));
 
-        result
+        match result {
+            Ok(Responses::PlayerBalance(amount)) => amount,
+            _ => panic!("Actor returned unexpected message"),
+        }
     }
 
     field total_buyin(&executor) -> i32 as "The total amount of money the Player has bought in with" {
-        let result = executor
-            .context()
-            .db
-            .send(Messages::GetBuyinByPlayerId(self.id))
-            .wait()
-            .and_then(|res| {
-                let db_value = res.expect("DBExecutor failed to execute DB query");
-                match db_value {
-                    Responses::PlayerBalance(amount) => Ok(amount),
-                    _ => panic!("Actor returned unexpected message"),
-                }
-            })
-            .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");
+        let result = query_db(executor, Messages::GetBuyinByPlayerId(self.id));
 
-        result
+        match result {
+            Ok(Responses::PlayerBalance(amount)) => amount,
+            _ => panic!("Actor returned unexpected message"),
+        }
     }
 });
 
@@ -101,6 +90,10 @@ graphql_object!(Realm: Context |&self| {
 
     field title() -> &str as "A user changeable title for the Realm" {
         &self.title
+    }
+
+    field utc_created_at() -> &str as "The date the PlayerSession was created" {
+        &self.utc_created_at
     }
 
     field players() -> Vec<Player> as "A list of all the Players in the Realm" {
@@ -140,6 +133,10 @@ graphql_object!(Session: Context |&self| {
         &self.time
     }
 
+    field utc_created_at() -> &str as "The date the PlayerSession was created" {
+        &self.utc_created_at
+    }
+
     field player_sessions() -> Vec<PlayerSession> as "The list of Players who participated in this Session" {
         unimplemented!()
     }
@@ -173,7 +170,11 @@ graphql_object!(PlayerSession: Context |&self| {
         self.buyin
     }
 
-    field buyin() -> i32 as "The amount of money the Player walked out with" {
+    field walkout() -> i32 as "The amount of money the Player walked out with" {
         self.walkout
+    }
+
+    field utc_created_at() -> &str as "The date the PlayerSession was created" {
+        &self.utc_created_at
     }
 });

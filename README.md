@@ -10,14 +10,14 @@ SessionsByRealmID  (args struct{ RealmID graphql.ID }) (*[]*SessionResolver, err
 ```
 
 ## Mutations
-```
+```Go
 CreateRealm        (args CreateRealm) (*RealmResolver, error) {
 CreatePlayer       (args CreatePlayer) (*PlayerResolver, error) {
 PutSession         (args CreateSession) (*SessionResolver, error) {
 ```
 
 ## Go Schema
-```
+```Go
 type Query {
   realmByName(name: String!): Realm
   realmById(id: ID!): Realm

@@ -1,4 +1,4 @@
-use graphql::entities::Player;
+use graphql::entities::*;
 use rusqlite::Error;
 
 use super::{Connection, Responses};
@@ -72,5 +72,29 @@ pub fn get_real_balance_by_player_id(conn: Connection, user_id: i32) -> Result<R
     match user {
         Ok(u) => Ok(Responses::PlayerBalance(u)),
         Err(_) => Ok(Responses::PlayerBalance(0)),
+    }
+}
+
+pub fn get_player_sessions_by_player_id(conn: Connection, user_id: i32) -> Result<Responses, Error> {
+    let stmt = "
+        SELECT player_id, session_id, buyin, walkout, utc_created_at
+        FROM player_session 
+        WHERE player_id=?
+    ";
+
+    let mut prep_stmt = conn.prepare(stmt)?;
+    let user: Result<Vec<PlayerSession>, Error> = prep_stmt.query_map(&[&user_id], |row| {
+        PlayerSession {
+            player_id: row.get(0),
+            session_id: row.get(1),
+            buyin: row.get(2),
+            walkout: row.get(3),
+            utc_created_at: row.get(4),
+        }
+    }).unwrap().collect();
+
+    match user {
+        Ok(u) => Ok(Responses::PlayerSessions(u)),
+        Err(_) => Ok(Responses::PlayerSessions(vec![])),
     }
 }
