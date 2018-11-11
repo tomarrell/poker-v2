@@ -20,18 +20,37 @@ impl Actor for DBExecutor {
 
 #[derive(Debug)]
 pub enum Messages {
+    // Player
     GetPlayerById(i32),
     GetBuyinByPlayerId(i32),
     GetHistoricalBalanceByPlayerId(i32),
     GetRealBalanceByPlayerId(i32),
     GetPlayerSessionsByPlayerId(i32),
+
+    // Realm
+    GetRealmById(i32),
+    GetPlayersByRealmId(i32),
+    GetSessionsByRealmId(i32),
+
+    // Session
+    GetSessionById(i32),
+    GetPlayerSessionsBySessionId(i32),
 }
 
 #[derive(Debug)]
 pub enum Responses {
+    // Player
     Player(Option<Player>),
     PlayerBalance(i32),
     PlayerSessions(Vec<PlayerSession>),
+
+    // Realm
+    Realm(Option<Realm>),
+    Players(Vec<Player>),
+    Sessions(Vec<Session>),
+
+    // Sessions
+    Session(Option<Session>),
 }
 
 impl Message for Messages {
@@ -48,6 +67,7 @@ impl Handler<Messages> for DBExecutor {
             .expect("Failed to get database connection from pool");
 
         let res = match msg {
+            // Player
             Messages::GetPlayerById(id) => get_player_by_id(db, id),
             Messages::GetBuyinByPlayerId(id) => get_buyin_by_player_id(db, id),
             Messages::GetHistoricalBalanceByPlayerId(id) => {
@@ -55,6 +75,15 @@ impl Handler<Messages> for DBExecutor {
             }
             Messages::GetRealBalanceByPlayerId(id) => get_real_balance_by_player_id(db, id),
             Messages::GetPlayerSessionsByPlayerId(id) => get_player_sessions_by_player_id(db, id),
+
+            // Realm
+            Messages::GetRealmById(id) => get_realm_by_id(db, id),
+            Messages::GetPlayersByRealmId(id) => get_players_by_realm_id(db, id),
+            Messages::GetSessionsByRealmId(id) => get_sessions_by_realm_id(db, id),
+
+            // Session
+            Messages::GetSessionById(id) => get_session_by_id(db, id),
+            Messages::GetPlayerSessionsBySessionId(id) => get_player_sessions_by_session_id(db, id),
         }
         .expect("DB query failed");
 

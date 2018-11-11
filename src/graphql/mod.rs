@@ -1,11 +1,10 @@
 use actix::prelude::*;
 use actix_web::Error;
+use futures::Future;
 use serde_derive::{Deserialize, Serialize};
 use std::sync::Arc;
-use futures::Future;
 
 pub mod entities;
-mod resolvers;
 pub mod schema;
 
 use self::schema::Schema;
@@ -70,9 +69,7 @@ pub fn query_db(
         .db
         .send(message)
         .wait()
-        .and_then(|res| {
-            Ok(res.expect("DBExecutor failed to execute DB query"))
-        })
+        .and_then(|res| Ok(res.expect("DBExecutor failed to execute DB query")))
         .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");
 
     Ok(result)

@@ -96,12 +96,22 @@ graphql_object!(Realm: Context |&self| {
         &self.utc_created_at
     }
 
-    field players() -> Vec<Player> as "A list of all the Players in the Realm" {
-        unimplemented!()
+    field players(&executor) -> Vec<Player> as "A list of all the Players in the Realm" {
+        let result = query_db(executor, Messages::GetPlayersByRealmId(self.id));
+
+        match result {
+            Ok(Responses::Players(players)) => players,
+            _ => panic!("Actor returned unexpected message"),
+        }
     }
 
-    field sessions() -> Vec<Session> as "A list of all the Sessions played within the Realm" {
-        unimplemented!()
+    field sessions(&executor) -> Vec<Session> as "A list of all the Sessions played within the Realm" {
+        let result = query_db(executor, Messages::GetSessionsByRealmId(self.id));
+
+        match result {
+            Ok(Responses::Sessions(sessions)) => sessions,
+            _ => panic!("Actor returned unexpected message"),
+        }
     }
 });
 
@@ -110,7 +120,7 @@ pub struct Session {
     pub id: i32,
     pub realm_id: i32,
     pub name: String,
-    pub time: String,
+    pub utc_time: String,
     pub utc_created_at: String,
 }
 
@@ -129,16 +139,21 @@ graphql_object!(Session: Context |&self| {
         &self.name
     }
 
-    field time() -> &str as "The time the session occurred" {
-        &self.time
+    field utc_time() -> &str as "The time the session occurred" {
+        &self.utc_time
     }
 
     field utc_created_at() -> &str as "The date the PlayerSession was created" {
         &self.utc_created_at
     }
 
-    field player_sessions() -> Vec<PlayerSession> as "The list of Players who participated in this Session" {
-        unimplemented!()
+    field player_sessions(&executor) -> Vec<PlayerSession> as "The list of Players who participated in this Session" {
+        let result = query_db(executor, Messages::GetPlayerSessionsBySessionId(self.id));
+
+        match result {
+            Ok(Responses::PlayerSessions(player_sessions)) => player_sessions,
+            _ => panic!("Actor returned unexpected message"),
+        }
     }
 });
 
@@ -154,8 +169,14 @@ pub struct PlayerSession {
 graphql_object!(PlayerSession: Context |&self| {
     description: "A participation by a Player in a Session"
 
-    field player() -> Player as "The Player who participated in the Session" {
-        unimplemented!()
+    field player(&executor) -> Player as "The Player who participated in the Session" {
+        let result = query_db(executor, Messages::GetPlayerById(self.player_id));
+
+        match result {
+            Ok(Responses::Player(Some(player))) => player,
+            Ok(Responses::Player(None)) => panic!("Player with ID from PlayerSession not found"),
+            _ => panic!("Actor returned unexpected message"),
+        }
     }
 
     field player_id() -> i32 as "The id of a Player who participated in a Session" {
