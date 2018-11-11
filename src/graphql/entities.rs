@@ -1,7 +1,6 @@
-extern crate juniper;
+use juniper::FieldResult;
 
 use super::query_db;
-
 use db::{Messages, Responses};
 use graphql::Context;
 
@@ -32,39 +31,38 @@ graphql_object!(Player: Context |&self| {
         &self.utc_created_at
     }
 
-    field player_sessions(&executor) -> Vec<PlayerSession> as "The sessions the Player has participated in" {
-        let result = query_db(executor, Messages::GetPlayerSessionsByPlayerId(self.id));
-
+    field player_sessions(&executor) -> FieldResult<Vec<PlayerSession>> as "The sessions the Player has participated in" {
+        let result = query_db(executor, Messages::GetPlayerSessionsByPlayerId(self.id))?; 
         match result {
-            Ok(Responses::PlayerSessions(player_sessions)) => player_sessions,
-            _ => panic!("Actor returned unexpected message"),
+            Responses::PlayerSessions(player_sessions) => Ok(player_sessions),
+            _ => Err("Actor returned unexpected message")?,
         }
     }
 
-    field historical_balance(&executor) -> i32 as "The amount of money a Player has won or lost in total, does not include rebalances" {
-        let result = query_db(executor, Messages::GetHistoricalBalanceByPlayerId(self.id));
+    field historical_balance(&executor) -> FieldResult<i32> as "The amount of money a Player has won or lost in total, does not include rebalances" {
+        let result = query_db(executor, Messages::GetHistoricalBalanceByPlayerId(self.id))?;
 
         match result {
-            Ok(Responses::PlayerBalance(amount)) => amount,
-            _ => panic!("Actor returned unexpected message"),
+            Responses::PlayerBalance(amount) => Ok(amount),
+            _ => Err("Actor returned unexpected message")?,
         }
     }
 
-    field real_balance(&executor) -> i32 as "The amount of money a Player has won or lost in addition to any rebalances the player has made" {
-        let result = query_db(executor, Messages::GetRealBalanceByPlayerId(self.id));
+    field real_balance(&executor) -> FieldResult<i32> as "The amount of money a Player has won or lost in addition to any rebalances the player has made" {
+        let result = query_db(executor, Messages::GetRealBalanceByPlayerId(self.id))?;
 
         match result {
-            Ok(Responses::PlayerBalance(amount)) => amount,
-            _ => panic!("Actor returned unexpected message"),
+            Responses::PlayerBalance(amount) => Ok(amount),
+            _ => Err("Actor returned unexpected message")?,
         }
     }
 
-    field total_buyin(&executor) -> i32 as "The total amount of money the Player has bought in with" {
-        let result = query_db(executor, Messages::GetBuyinByPlayerId(self.id));
+    field total_buyin(&executor) -> FieldResult<i32> as "The total amount of money the Player has bought in with" {
+        let result = query_db(executor, Messages::GetBuyinByPlayerId(self.id))?;
 
         match result {
-            Ok(Responses::PlayerBalance(amount)) => amount,
-            _ => panic!("Actor returned unexpected message"),
+            Responses::PlayerBalance(amount) => Ok(amount),
+            _ => Err("Actor returned unexpected message")?,
         }
     }
 });
@@ -96,21 +94,21 @@ graphql_object!(Realm: Context |&self| {
         &self.utc_created_at
     }
 
-    field players(&executor) -> Vec<Player> as "A list of all the Players in the Realm" {
-        let result = query_db(executor, Messages::GetPlayersByRealmId(self.id));
+    field players(&executor) -> FieldResult<Vec<Player>> as "A list of all the Players in the Realm" {
+        let result = query_db(executor, Messages::GetPlayersByRealmId(self.id))?;
 
         match result {
-            Ok(Responses::Players(players)) => players,
-            _ => panic!("Actor returned unexpected message"),
+            Responses::Players(players) => Ok(players),
+            _ => Err("Actor returned unexpected message")?,
         }
     }
 
-    field sessions(&executor) -> Vec<Session> as "A list of all the Sessions played within the Realm" {
-        let result = query_db(executor, Messages::GetSessionsByRealmId(self.id));
+    field sessions(&executor) -> FieldResult<Vec<Session>> as "A list of all the Sessions played within the Realm" {
+        let result = query_db(executor, Messages::GetSessionsByRealmId(self.id))?;
 
         match result {
-            Ok(Responses::Sessions(sessions)) => sessions,
-            _ => panic!("Actor returned unexpected message"),
+            Responses::Sessions(sessions) => Ok(sessions),
+            _ => Err("Actor returned unexpected message")?,
         }
     }
 });
@@ -147,12 +145,12 @@ graphql_object!(Session: Context |&self| {
         &self.utc_created_at
     }
 
-    field player_sessions(&executor) -> Vec<PlayerSession> as "The list of Players who participated in this Session" {
-        let result = query_db(executor, Messages::GetPlayerSessionsBySessionId(self.id));
+    field player_sessions(&executor) -> FieldResult<Vec<PlayerSession>> as "The list of Players who participated in this Session" {
+        let result = query_db(executor, Messages::GetPlayerSessionsBySessionId(self.id))?;
 
         match result {
-            Ok(Responses::PlayerSessions(player_sessions)) => player_sessions,
-            _ => panic!("Actor returned unexpected message"),
+            Responses::PlayerSessions(player_sessions) => Ok(player_sessions),
+            _ => Err("Actor returned unexpected message")?,
         }
     }
 });
@@ -169,13 +167,13 @@ pub struct PlayerSession {
 graphql_object!(PlayerSession: Context |&self| {
     description: "A participation by a Player in a Session"
 
-    field player(&executor) -> Player as "The Player who participated in the Session" {
-        let result = query_db(executor, Messages::GetPlayerById(self.player_id));
+    field player(&executor) -> FieldResult<Player> as "The Player who participated in the Session" {
+        let result = query_db(executor, Messages::GetPlayerById(self.player_id))?;
 
         match result {
-            Ok(Responses::Player(Some(player))) => player,
-            Ok(Responses::Player(None)) => panic!("Player with ID from PlayerSession not found"),
-            _ => panic!("Actor returned unexpected message"),
+            Responses::Player(Some(player)) => Ok(player),
+            Responses::Player(None) => Err("Player with ID from PlayerSession not found")?,
+            _ => Err("Actor returned unexpected message")?,
         }
     }
 

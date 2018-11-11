@@ -93,8 +93,7 @@ pub fn get_player_sessions_by_player_id(
             buyin: row.get(2),
             walkout: row.get(3),
             utc_created_at: row.get(4),
-        })
-        .unwrap()
+        })?
         .collect();
 
     match player_sessions {
@@ -140,8 +139,7 @@ pub fn get_players_by_realm_id(conn: Connection, realm_id: i32) -> Result<Respon
             name: row.get(1),
             realm_id: row.get(2),
             utc_created_at: row.get(3),
-        })
-        .unwrap()
+        })?
         .collect();
 
     match players {
@@ -165,8 +163,7 @@ pub fn get_sessions_by_realm_id(conn: Connection, realm_id: i32) -> Result<Respo
             realm_id: row.get(2),
             utc_time: row.get(3),
             utc_created_at: row.get(4),
-        })
-        .unwrap()
+        })?
         .collect();
 
     match sessions {
@@ -217,8 +214,7 @@ pub fn get_player_sessions_by_session_id(
             buyin: row.get(2),
             walkout: row.get(3),
             utc_created_at: row.get(4),
-        })
-        .unwrap()
+        })?
         .collect();
 
     match player_sessions {

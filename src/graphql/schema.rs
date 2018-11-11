@@ -12,20 +12,20 @@ pub struct QueryRoot;
 
 graphql_object!(QueryRoot: Context |&self| {
     field player(&executor, user_id: i32) -> FieldResult<Option<Player>> {
-        let result = query_db(executor, Messages::GetPlayerById(user_id));
+        let result = query_db(executor, Messages::GetPlayerById(user_id))?;
 
         match result {
-            Ok(Responses::Player(player)) => Ok(player),
-            _ => panic!("Actor returned unexpected message"),
+            Responses::Player(player) => Ok(player),
+            _ => Err("Actor returned unexpected message")?,
         }
     }
 
     field realm(&executor, realm_id: Option<i32>, realm_name: Option<String>) -> FieldResult<Option<Realm>> {
         if let Some(realm_id) = realm_id {
-            let result = query_db(executor, Messages::GetRealmById(realm_id));
+            let result = query_db(executor, Messages::GetRealmById(realm_id))?;
 
             match result {
-                Ok(Responses::Realm(realm)) => return Ok(realm),
+                Responses::Realm(realm) => return Ok(realm),
                 _ => Err("Actor returned unexpected message")?,
             }
         }
@@ -38,11 +38,11 @@ graphql_object!(QueryRoot: Context |&self| {
     }
 
     field session(&executor, session_id: i32) -> FieldResult<Option<Session>> {
-        let result = query_db(executor, Messages::GetSessionById(session_id));
+        let result = query_db(executor, Messages::GetSessionById(session_id))?;
 
         match result {
-            Ok(Responses::Session(session)) => Ok(session),
-            _ => panic!("Actor returned unexpected message"),
+            Responses::Session(session) => Ok(session),
+            _ => Err("Actor returned unexpected message")?,
         }
     }
 });

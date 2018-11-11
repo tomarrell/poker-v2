@@ -63,14 +63,16 @@ impl Handler<GraphQLData> for GraphQLExecutor {
 pub fn query_db(
     executor: &&juniper::Executor<'_, Context>,
     message: Messages,
-) -> Result<Responses, Error> {
-    let result = executor
+) -> Result<Responses, String> {
+    executor
         .context()
         .db
         .send(message)
         .wait()
-        .and_then(|res| Ok(res.expect("DBExecutor failed to execute DB query")))
-        .expect("Failed to receive message from DBExecutor, inbox closed or message timed out.");
-
-    Ok(result)
+        .map_err(|res| {
+            format!("Message failed delivery due to mailbox closed or timeout: {}", res)
+        })?
+        .map_err(|res| {
+            format!("Failed to query DB: {}", res)
+        })
 }
