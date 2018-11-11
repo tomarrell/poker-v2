@@ -20,13 +20,21 @@ graphql_object!(QueryRoot: Context |&self| {
         }
     }
 
-    field realm(&executor, realm_id: i32) -> FieldResult<Option<Realm>> {
-        let result = query_db(executor, Messages::GetRealmById(realm_id));
+    field realm(&executor, realm_id: Option<i32>, realm_name: Option<String>) -> FieldResult<Option<Realm>> {
+        if let Some(realm_id) = realm_id {
+            let result = query_db(executor, Messages::GetRealmById(realm_id));
 
-        match result {
-            Ok(Responses::Realm(realm)) => Ok(realm),
-            _ => panic!("Actor returned unexpected message"),
+            match result {
+                Ok(Responses::Realm(realm)) => return Ok(realm),
+                _ => Err("Actor returned unexpected message")?,
+            }
         }
+
+        if let Some(realm_name) = realm_name {
+            unimplemented!()
+        }
+
+        Err("At least one arg of `realm_id` or `realm_name` must be specified on this query")?
     }
 
     field session(&executor, session_id: i32) -> FieldResult<Option<Session>> {
