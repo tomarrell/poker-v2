@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 pub mod entities;
 pub mod schema;
+pub mod input_types;
 
 use self::schema::Schema;
 use db::{DBExecutor, Messages, Responses};

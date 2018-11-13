@@ -19,10 +19,10 @@ PutSession         (args CreateSession) (*SessionResolver, error) {
 ## Go Schema
 ```Go
 type Query {
-  realmByName(name: String!): Realm
+  realmByName(name: String!): Realm                  -> becoming realm(name: string)
   realmById(id: ID!): Realm
   sessionById(id: ID!): Session
-  sessionsByRealmId(realmId: ID!): [Session]
+  sessionsByRealmId(realmId: ID!): [Session]         -> becoming realm(id: int).sessions
   playerById(id: ID!): Player
 }
 

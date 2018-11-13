@@ -5,6 +5,8 @@ use rusqlite::Error;
 
 use graphql::entities::*;
 
+mod updates;
+use self::updates::*;
 mod queries;
 use self::queries::*;
 
@@ -35,6 +37,10 @@ pub enum Messages {
     // Session
     GetSessionById(i32),
     GetPlayerSessionsBySessionId(i32),
+
+    // Inserts
+    CreateRealm { name: String, title: Option<String> },
+    CreatePlayer { name: String, realm_id: i32 },
 }
 
 #[derive(Debug)]
@@ -51,6 +57,9 @@ pub enum Responses {
 
     // Sessions
     Session(Option<Session>),
+
+    // Updates to DB
+    Ok,
 }
 
 impl Message for Messages {
@@ -84,8 +93,11 @@ impl Handler<Messages> for DBExecutor {
             // Session
             Messages::GetSessionById(id) => get_session_by_id(db, id),
             Messages::GetPlayerSessionsBySessionId(id) => get_player_sessions_by_session_id(db, id),
-        }
-        .expect("DB query failed");
+
+            // Insert
+            Messages::CreateRealm { name, title } => create_realm(db, name, title),
+            Messages::CreatePlayer { name, realm_id } => create_player(db, name, realm_id),
+        }?;
 
         Ok(res)
     }

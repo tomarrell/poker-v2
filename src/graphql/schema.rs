@@ -4,6 +4,7 @@ extern crate juniper;
 use juniper::{FieldResult, RootNode};
 
 use super::entities::*;
+use super::input_types::*;
 use db::{Messages, Responses};
 use graphql::{query_db, Context};
 
@@ -51,7 +52,25 @@ graphql_object!(QueryRoot: Context |&self| {
 pub struct MutationRoot;
 
 graphql_object!(MutationRoot: Context |&self| {
-    field create_player(&executor) -> FieldResult<()> {
+    field create_realm(&executor, name: String, title: Option<String>) -> FieldResult<bool> {
+        let result = query_db(executor, Messages::CreateRealm{name, title})?;
+
+        match result {
+            Responses::Ok => Ok(true),
+            _ => Err("Actor returned unexpected message")?,
+        }
+    }
+
+    field create_player(&executor, name: String, realm_id: i32) -> FieldResult<bool> {
+        let result = query_db(executor, Messages::CreatePlayer{name, realm_id})?;
+
+        match result {
+            Responses::Ok => Ok(true),
+            _ => Err("Actor returned unexpected message")?,
+        }
+    }
+
+    field put_session(&executor, session: InputSession) -> FieldResult<()> {
         Ok(())
     }
 });

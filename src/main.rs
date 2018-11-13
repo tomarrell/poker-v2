@@ -56,8 +56,10 @@ fn graphql((state, data): (State<AppState>, Json<GraphQLData>)) -> FutureRespons
 }
 
 fn main() {
-    // SQLite connection
-    let manager = SqliteConnectionManager::file(DB_PATH);
+    // SQLite connection pool initialization, with
+    // PRAGMA set on connection creation
+    let manager = SqliteConnectionManager::file(DB_PATH)
+        .with_init(|c| c.execute_batch("PRAGMA foreign_keys=1;"));
     let pool = r2d2::Pool::new(manager).unwrap();
 
     // Actor root system
