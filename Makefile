@@ -4,7 +4,7 @@ DB_PATH = sqlite:///Users/toma/Documents/poker-v2/poker.db
 .PHONY: watch migrate status
 
 watch:
-	cargo watch -x run
+	cargo watch -x run -w ./src
 
 migrate-up:
 	@dbmigrate --path=$(MIGRATIONS_PATH) --url=$(DB_PATH) up

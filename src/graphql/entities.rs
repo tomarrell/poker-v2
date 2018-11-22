@@ -71,7 +71,7 @@ graphql_object!(Player: Context |&self| {
 pub struct Realm {
     pub id: i32,
     pub name: String,
-    pub title: String,
+    pub title: Option<String>,
     pub utc_created_at: String,
 }
 
@@ -86,8 +86,8 @@ graphql_object!(Realm: Context |&self| {
         &self.name
     }
 
-    field title() -> &str as "A user changeable title for the Realm" {
-        &self.title
+    field title() -> Option<String> as "A user changeable title for the Realm" {
+        self.title.clone()
     }
 
     field utc_created_at() -> &str as "The date the PlayerSession was created" {
