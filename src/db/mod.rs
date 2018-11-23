@@ -4,11 +4,12 @@ use r2d2_sqlite;
 use rusqlite::Error;
 
 use graphql::entities::*;
+use graphql::input_types::InputPlayerSession;
 
-mod updates;
-use self::updates::*;
 mod queries;
+mod updates;
 use self::queries::*;
+use self::updates::*;
 
 pub type Pool = r2d2::Pool<r2d2_sqlite::SqliteConnectionManager>;
 pub type Connection = r2d2::PooledConnection<r2d2_sqlite::SqliteConnectionManager>;
@@ -39,8 +40,27 @@ pub enum Messages {
     GetPlayerSessionsBySessionId(i32),
 
     // Inserts
-    CreateRealm { name: String, title: Option<String> },
-    CreatePlayer { name: String, realm_id: i32 },
+    CreateRealm {
+        name: String,
+        title: Option<String>,
+    },
+    CreatePlayer {
+        name: String,
+        realm_id: i32,
+    },
+    CreateSession {
+        name: String,
+        realm_id: i32,
+        time: String,
+        player_sessions: Vec<InputPlayerSession>,
+    },
+    ModifySession {
+        id: i32,
+        name: String,
+        realm_id: i32,
+        time: String,
+        player_sessions: Vec<InputPlayerSession>,
+    },
 }
 
 #[derive(Debug)]
@@ -97,6 +117,8 @@ impl Handler<Messages> for DBExecutor {
             // Insert
             Messages::CreateRealm { name, title } => create_realm(db, name, title),
             Messages::CreatePlayer { name, realm_id } => create_player(db, name, realm_id),
+            Messages::CreateSession { name, realm_id, time, player_sessions} => create_session(db, name, realm_id, time, player_sessions),
+            Messages::ModifySession { id, name, realm_id, time, player_sessions} => modify_session(db, id, name, realm_id, time, player_sessions),
         }?;
 
         Ok(res)

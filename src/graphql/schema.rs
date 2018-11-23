@@ -70,8 +70,16 @@ graphql_object!(MutationRoot: Context |&self| {
         }
     }
 
-    field put_session(&executor, session: InputSession) -> FieldResult<()> {
-        Ok(())
+    field put_session(&executor, id: Option<i32>, name: String, realm_id: i32, time: String, player_sessions: Vec<InputPlayerSession>) -> FieldResult<bool> {
+        let result = match id {
+            Some(id) => query_db(executor, Messages::ModifySession{id, name, realm_id, time, player_sessions}),
+            None => query_db(executor, Messages::CreateSession{name, realm_id, time, player_sessions}),
+        }?;
+
+        match result {
+            Responses::Ok => Ok(true),
+            _ => Err("Actor returned unexpected message")?,
+        }
     }
 });
 
