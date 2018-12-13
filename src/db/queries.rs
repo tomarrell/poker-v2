@@ -3,7 +3,7 @@ use rusqlite::Error;
 
 use super::{Connection, Responses};
 
-pub fn get_player_by_id(conn: Connection, user_id: i32) -> Result<Responses, Error> {
+pub fn get_player_by_id(conn: &Connection, user_id: i32) -> Result<Responses, Error> {
     let stmt = "
         SELECT id, name, realm_id, utc_created_at
         FROM player
@@ -24,7 +24,7 @@ pub fn get_player_by_id(conn: Connection, user_id: i32) -> Result<Responses, Err
     }
 }
 
-pub fn get_buyin_by_player_id(conn: Connection, user_id: i32) -> Result<Responses, Error> {
+pub fn get_buyin_by_player_id(conn: &Connection, user_id: i32) -> Result<Responses, Error> {
     let stmt = "
         SELECT COALESCE(SUM(buyin), 0)
         FROM player_session
@@ -41,7 +41,7 @@ pub fn get_buyin_by_player_id(conn: Connection, user_id: i32) -> Result<Response
 }
 
 pub fn get_historical_balance_by_player_id(
-    conn: Connection,
+    conn: &Connection,
     user_id: i32,
 ) -> Result<Responses, Error> {
     let stmt = "
@@ -59,7 +59,7 @@ pub fn get_historical_balance_by_player_id(
     }
 }
 
-pub fn get_real_balance_by_player_id(conn: Connection, user_id: i32) -> Result<Responses, Error> {
+pub fn get_real_balance_by_player_id(conn: &Connection, user_id: i32) -> Result<Responses, Error> {
     let stmt = "
         SELECT COALESCE(SUM(amount), 0)
         FROM transfer
@@ -76,7 +76,7 @@ pub fn get_real_balance_by_player_id(conn: Connection, user_id: i32) -> Result<R
 }
 
 pub fn get_player_sessions_by_player_id(
-    conn: Connection,
+    conn: &Connection,
     user_id: i32,
 ) -> Result<Responses, Error> {
     let stmt = "
@@ -102,7 +102,7 @@ pub fn get_player_sessions_by_player_id(
     }
 }
 
-pub fn get_realm_by_id(conn: Connection, realm_id: i32) -> Result<Responses, Error> {
+pub fn get_realm_by_id(conn: &Connection, realm_id: i32) -> Result<Responses, Error> {
     let stmt = "
         SELECT id, name, title, utc_created_at
         FROM realm
@@ -125,7 +125,7 @@ pub fn get_realm_by_id(conn: Connection, realm_id: i32) -> Result<Responses, Err
     }
 }
 
-pub fn get_players_by_realm_id(conn: Connection, realm_id: i32) -> Result<Responses, Error> {
+pub fn get_players_by_realm_id(conn: &Connection, realm_id: i32) -> Result<Responses, Error> {
     let stmt = "
         SELECT id, name, realm_id, utc_created_at
         FROM player
@@ -148,7 +148,7 @@ pub fn get_players_by_realm_id(conn: Connection, realm_id: i32) -> Result<Respon
     }
 }
 
-pub fn get_sessions_by_realm_id(conn: Connection, realm_id: i32) -> Result<Responses, Error> {
+pub fn get_sessions_by_realm_id(conn: &Connection, realm_id: i32) -> Result<Responses, Error> {
     let stmt = "
         SELECT id, name, realm_id, utc_time, utc_created_at
         FROM session
@@ -172,7 +172,7 @@ pub fn get_sessions_by_realm_id(conn: Connection, realm_id: i32) -> Result<Respo
     }
 }
 
-pub fn get_session_by_id(conn: Connection, session_id: i32) -> Result<Responses, Error> {
+pub fn get_session_by_id(conn: &Connection, session_id: i32) -> Result<Responses, Error> {
     let stmt = "
         SELECT id, name, realm_id, utc_time, utc_created_at
         FROM session
@@ -197,7 +197,7 @@ pub fn get_session_by_id(conn: Connection, session_id: i32) -> Result<Responses,
 }
 
 pub fn get_player_sessions_by_session_id(
-    conn: Connection,
+    conn: &Connection,
     session_id: i32,
 ) -> Result<Responses, Error> {
     let stmt = "

@@ -1,4 +1,4 @@
-use juniper::FieldResult;
+use juniper::{graphql_object, FieldResult};
 
 use super::query_db;
 use crate::db::{Messages, Responses};
@@ -32,7 +32,7 @@ graphql_object!(Player: Context |&self| {
     }
 
     field player_sessions(&executor) -> FieldResult<Vec<PlayerSession>> as "The sessions the Player has participated in" {
-        let result = query_db(executor, Messages::GetPlayerSessionsByPlayerId(self.id))?; 
+        let result = query_db(executor, Messages::GetPlayerSessionsByPlayerId(self.id))?;
         match result {
             Responses::PlayerSessions(player_sessions) => Ok(player_sessions),
             _ => Err("Actor returned unexpected message")?,

@@ -6,9 +6,9 @@ use crate::graphql::input_types::InputPlayerSession;
 use super::{Connection, Responses};
 
 pub fn create_realm(
-    conn: Connection,
-    name: String,
-    title: Option<String>,
+    conn: &Connection,
+    name: &str,
+    title: &Option<String>,
 ) -> Result<Responses, Error> {
     let stmt = "
         INSERT INTO realm(name, title)
@@ -16,29 +16,29 @@ pub fn create_realm(
     ";
 
     let mut prep_stmt = conn.prepare(stmt)?;
-    prep_stmt.insert(&[&name, &title as &ToSql])?;
+    prep_stmt.insert(&[&name, &title as &dyn ToSql])?;
 
     Ok(Responses::Ok)
 }
 
-pub fn create_player(conn: Connection, name: String, realm_id: i32) -> Result<Responses, Error> {
+pub fn create_player(conn: &Connection, name: &str, realm_id: i32) -> Result<Responses, Error> {
     let stmt = "
         INSERT INTO player(name, realm_id)
         VALUES(?1, ?2)
     ";
 
     let mut prep_stmt = conn.prepare(stmt)?;
-    prep_stmt.insert(&[&name, &realm_id as &ToSql])?;
+    prep_stmt.insert(&[&name, &realm_id as &dyn ToSql])?;
 
     Ok(Responses::Ok)
 }
 
 pub fn create_session(
     mut conn: Connection,
-    name: String,
+    name: &str,
     realm_id: i32,
-    time: String,
-    player_sessions: Vec<InputPlayerSession>,
+    time: &str,
+    player_sessions: &[InputPlayerSession],
 ) -> Result<Responses, Error> {
     let tx = conn.transaction()?;
 
@@ -49,7 +49,7 @@ pub fn create_session(
 
     // Insert the session into the `session` table
     tx.prepare(stmt)?
-        .insert(&[&name, &realm_id as &ToSql, &time])?;
+        .insert(&[&name, &realm_id as &dyn ToSql, &time])?;
 
     // Fetch most recent session insertion
     let session_id = tx.last_insert_rowid();
@@ -64,8 +64,12 @@ pub fn create_session(
     {
         let mut prep_stmt = tx.prepare(stmt)?;
         player_sessions.iter().for_each(|ps| {
-            let _ =
-                prep_stmt.insert(&[&ps.player_id, &session_id as &ToSql, &ps.buyin, &ps.walkout]);
+            let _ = prep_stmt.insert(&[
+                &ps.player_id,
+                &session_id as &dyn ToSql,
+                &ps.buyin,
+                &ps.walkout,
+            ]);
         });
     }
 
@@ -75,12 +79,12 @@ pub fn create_session(
 }
 
 pub fn modify_session(
-    _conn: Connection,
+    _conn: &Connection,
     _id: i32,
-    _name: String,
+    _name: &str,
     _realm_id: i32,
-    _time: String,
-    _player_sessions: Vec<InputPlayerSession>,
+    _time: &str,
+    _player_sessions: &[InputPlayerSession],
 ) -> Result<Responses, Error> {
     unimplemented!()
 }

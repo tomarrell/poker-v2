@@ -1,15 +1,9 @@
+#![warn(rust_2018_idioms)]
+
 #[macro_use]
 extern crate juniper;
-extern crate actix;
-extern crate actix_web;
-extern crate futures;
-extern crate r2d2;
-extern crate r2d2_sqlite;
-extern crate rusqlite;
-extern crate serde_derive;
-extern crate serde_json;
 
-use actix::prelude::*;
+use actix::{Addr, SyncArbiter};
 use actix_web::{
     http, server, App, AsyncResponder, Error, FutureResponse, HttpRequest, HttpResponse, Json,
     State,
@@ -21,12 +15,12 @@ use std::sync::Arc;
 mod db;
 mod graphql;
 
-use crate::db::DBExecutor;
-use crate::graphql::schema::create_schema;
-use crate::graphql::{GraphQLData, GraphQLExecutor};
+use self::db::DBExecutor;
+use self::graphql::schema::create_schema;
+use self::graphql::{GraphQLData, GraphQLExecutor};
 
-const ADDRESS: &'static str = "localhost:8088";
-const DB_PATH: &'static str = "./poker.db";
+const ADDRESS: &str = "localhost:8088";
+const DB_PATH: &str = "./poker.db";
 const NUM_THREADS: usize = 3;
 
 struct AppState {

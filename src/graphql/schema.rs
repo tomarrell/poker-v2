@@ -1,7 +1,4 @@
-extern crate actix;
-extern crate juniper;
-
-use juniper::{FieldResult, RootNode};
+use juniper::{graphql_object, FieldResult, RootNode};
 
 use super::entities::*;
 use super::input_types::*;

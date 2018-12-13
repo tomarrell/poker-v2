@@ -5,8 +5,8 @@ use serde_derive::{Deserialize, Serialize};
 use std::sync::Arc;
 
 pub mod entities;
-pub mod schema;
 pub mod input_types;
+pub mod schema;
 
 use self::schema::Schema;
 use crate::db::{DBExecutor, Messages, Responses};
@@ -30,10 +30,7 @@ impl Actor for GraphQLExecutor {
 
 impl GraphQLExecutor {
     pub fn new(schema: Arc<Schema>, db_exe: Addr<DBExecutor>) -> GraphQLExecutor {
-        GraphQLExecutor {
-            schema: schema,
-            db: db_exe,
-        }
+        GraphQLExecutor { schema, db: db_exe }
     }
 }
 
@@ -62,7 +59,7 @@ impl Handler<GraphQLData> for GraphQLExecutor {
 }
 
 pub fn query_db(
-    executor: &&juniper::Executor<'_, Context>,
+    executor: &juniper::Executor<'_, Context>,
     message: Messages,
 ) -> Result<Responses, String> {
     executor
@@ -71,9 +68,10 @@ pub fn query_db(
         .send(message)
         .wait()
         .map_err(|res| {
-            format!("Message failed delivery due to mailbox closed or timeout: {}", res)
+            format!(
+                "Message failed delivery due to mailbox closed or timeout: {}",
+                res
+            )
         })?
-        .map_err(|res| {
-            format!("Failed to query DB: {}", res)
-        })
+        .map_err(|res| format!("Failed to query DB: {}", res))
 }

@@ -1,6 +1,4 @@
 use actix::prelude::*;
-use r2d2;
-use r2d2_sqlite;
 use rusqlite::Error;
 
 use crate::graphql::entities::*;
@@ -97,28 +95,41 @@ impl Handler<Messages> for DBExecutor {
 
         let res = match msg {
             // Player
-            Messages::GetPlayerById(id) => get_player_by_id(db, id),
-            Messages::GetBuyinByPlayerId(id) => get_buyin_by_player_id(db, id),
+            Messages::GetPlayerById(id) => get_player_by_id(&db, id),
+            Messages::GetBuyinByPlayerId(id) => get_buyin_by_player_id(&db, id),
             Messages::GetHistoricalBalanceByPlayerId(id) => {
-                get_historical_balance_by_player_id(db, id)
+                get_historical_balance_by_player_id(&db, id)
             }
-            Messages::GetRealBalanceByPlayerId(id) => get_real_balance_by_player_id(db, id),
-            Messages::GetPlayerSessionsByPlayerId(id) => get_player_sessions_by_player_id(db, id),
+            Messages::GetRealBalanceByPlayerId(id) => get_real_balance_by_player_id(&db, id),
+            Messages::GetPlayerSessionsByPlayerId(id) => get_player_sessions_by_player_id(&db, id),
 
             // Realm
-            Messages::GetRealmById(id) => get_realm_by_id(db, id),
-            Messages::GetPlayersByRealmId(id) => get_players_by_realm_id(db, id),
-            Messages::GetSessionsByRealmId(id) => get_sessions_by_realm_id(db, id),
+            Messages::GetRealmById(id) => get_realm_by_id(&db, id),
+            Messages::GetPlayersByRealmId(id) => get_players_by_realm_id(&db, id),
+            Messages::GetSessionsByRealmId(id) => get_sessions_by_realm_id(&db, id),
 
             // Session
-            Messages::GetSessionById(id) => get_session_by_id(db, id),
-            Messages::GetPlayerSessionsBySessionId(id) => get_player_sessions_by_session_id(db, id),
+            Messages::GetSessionById(id) => get_session_by_id(&db, id),
+            Messages::GetPlayerSessionsBySessionId(id) => {
+                get_player_sessions_by_session_id(&db, id)
+            }
 
             // Insert
-            Messages::CreateRealm { name, title } => create_realm(db, name, title),
-            Messages::CreatePlayer { name, realm_id } => create_player(db, name, realm_id),
-            Messages::CreateSession { name, realm_id, time, player_sessions} => create_session(db, name, realm_id, time, player_sessions),
-            Messages::ModifySession { id, name, realm_id, time, player_sessions} => modify_session(db, id, name, realm_id, time, player_sessions),
+            Messages::CreateRealm { name, title } => create_realm(&db, &name, &title),
+            Messages::CreatePlayer { name, realm_id } => create_player(&db, &name, realm_id),
+            Messages::CreateSession {
+                name,
+                realm_id,
+                time,
+                player_sessions,
+            } => create_session(db, &name, realm_id, &time, &player_sessions),
+            Messages::ModifySession {
+                id,
+                name,
+                realm_id,
+                time,
+                player_sessions,
+            } => modify_session(&db, id, &name, realm_id, &time, &player_sessions),
         }?;
 
         Ok(res)
