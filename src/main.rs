@@ -88,5 +88,6 @@ fn main() {
     .start();
 
     println!("Started http server on: {}", ADDRESS);
+    println!("GraphiQL panel serving at http://{}/graphiql", ADDRESS);
     let _ = system.run();
 }
