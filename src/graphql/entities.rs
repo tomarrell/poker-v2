@@ -1,8 +1,8 @@
 use juniper::FieldResult;
 
 use super::query_db;
-use db::{Messages, Responses};
-use graphql::Context;
+use crate::db::{Messages, Responses};
+use crate::graphql::Context;
 
 #[derive(Debug)]
 pub struct Player {

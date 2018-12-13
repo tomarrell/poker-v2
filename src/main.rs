@@ -21,9 +21,9 @@ use std::sync::Arc;
 mod db;
 mod graphql;
 
-use db::DBExecutor;
-use graphql::schema::create_schema;
-use graphql::{GraphQLData, GraphQLExecutor};
+use crate::db::DBExecutor;
+use crate::graphql::schema::create_schema;
+use crate::graphql::{GraphQLData, GraphQLExecutor};
 
 const ADDRESS: &'static str = "localhost:8088";
 const DB_PATH: &'static str = "./poker.db";

@@ -75,12 +75,12 @@ pub fn create_session(
 }
 
 pub fn modify_session(
-    conn: Connection,
-    id: i32,
-    name: String,
-    realm_id: i32,
-    time: String,
-    player_sessions: Vec<InputPlayerSession>,
+    _conn: Connection,
+    _id: i32,
+    _name: String,
+    _realm_id: i32,
+    _time: String,
+    _player_sessions: Vec<InputPlayerSession>,
 ) -> Result<Responses, Error> {
     unimplemented!()
 }

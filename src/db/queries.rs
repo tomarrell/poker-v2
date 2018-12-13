@@ -1,4 +1,4 @@
-use graphql::entities::*;
+use crate::graphql::entities::*;
 use rusqlite::Error;
 
 use super::{Connection, Responses};

@@ -9,7 +9,7 @@ pub mod schema;
 pub mod input_types;
 
 use self::schema::Schema;
-use db::{DBExecutor, Messages, Responses};
+use crate::db::{DBExecutor, Messages, Responses};
 
 // Context to be shared amongst GraphQL Requests
 pub struct Context {

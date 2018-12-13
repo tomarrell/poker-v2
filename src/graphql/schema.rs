@@ -5,8 +5,8 @@ use juniper::{FieldResult, RootNode};
 
 use super::entities::*;
 use super::input_types::*;
-use db::{Messages, Responses};
-use graphql::{query_db, Context};
+use crate::db::{Messages, Responses};
+use crate::graphql::{query_db, Context};
 
 // Queries
 pub struct QueryRoot;

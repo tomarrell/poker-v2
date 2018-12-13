@@ -3,8 +3,8 @@ use r2d2;
 use r2d2_sqlite;
 use rusqlite::Error;
 
-use graphql::entities::*;
-use graphql::input_types::InputPlayerSession;
+use crate::graphql::entities::*;
+use crate::graphql::input_types::InputPlayerSession;
 
 mod queries;
 mod updates;
