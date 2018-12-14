@@ -49,6 +49,7 @@ graphql_object!(QueryRoot: Context |&self| {
 pub struct MutationRoot;
 
 graphql_object!(MutationRoot: Context |&self| {
+    // Create a play realm.
     field create_realm(&executor, name: String, title: Option<String>) -> FieldResult<bool> {
         let result = query_db(executor, Messages::CreateRealm{name, title})?;
 
@@ -58,6 +59,7 @@ graphql_object!(MutationRoot: Context |&self| {
         }
     }
 
+    // Create a new player in a given realm.
     field create_player(&executor, name: String, realm_id: i32) -> FieldResult<bool> {
         let result = query_db(executor, Messages::CreatePlayer{name, realm_id})?;
 
@@ -67,9 +69,18 @@ graphql_object!(MutationRoot: Context |&self| {
         }
     }
 
-    field put_session(&executor, id: Option<i32>, name: String, realm_id: i32, time: String, player_sessions: Vec<InputPlayerSession>) -> FieldResult<bool> {
+    // Create a session if no ID is provided, if an ID is provided,
+    // replace the session with the given ID
+    field put_session(
+        &executor,
+        id: Option<i32>,
+        name: String,
+        realm_id: i32,
+        time: String,
+        player_sessions: Vec<InputPlayerSession>,
+    ) -> FieldResult<bool> {
         let result = match id {
-            Some(id) => query_db(executor, Messages::ModifySession{id, name, realm_id, time, player_sessions}),
+            Some(id) => query_db(executor, Messages::ModifySession{id, name, time, player_sessions}),
             None => query_db(executor, Messages::CreateSession{name, realm_id, time, player_sessions}),
         }?;
 

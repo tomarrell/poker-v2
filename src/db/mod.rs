@@ -55,7 +55,6 @@ pub enum Messages {
     ModifySession {
         id: i32,
         name: String,
-        realm_id: i32,
         time: String,
         player_sessions: Vec<InputPlayerSession>,
     },
@@ -126,10 +125,9 @@ impl Handler<Messages> for DBExecutor {
             Messages::ModifySession {
                 id,
                 name,
-                realm_id,
                 time,
                 player_sessions,
-            } => modify_session(&db, id, &name, realm_id, &time, &player_sessions),
+            } => modify_session(db, id, &name, &time, &player_sessions),
         }?;
 
         Ok(res)

@@ -79,12 +79,55 @@ pub fn create_session(
 }
 
 pub fn modify_session(
-    _conn: &Connection,
-    _id: i32,
-    _name: &str,
-    _realm_id: i32,
-    _time: &str,
-    _player_sessions: &[InputPlayerSession],
+    mut conn: Connection,
+    id: i32,
+    name: &str,
+    time: &str,
+    player_sessions: &[InputPlayerSession],
 ) -> Result<Responses, Error> {
-    unimplemented!()
+    let tx = conn.transaction()?;
+
+    let update = "
+        UPDATE session
+        SET name = ?1, utc_time = ?2
+        WHERE id = ?3
+    ";
+
+    // Update the session record with new name and time
+    tx.prepare(update)?
+        .execute(&[&name, &time as &dyn ToSql, &id])?;
+
+    // Delete all the old player_sessions
+    // TODO: In future, event sourcing?
+    let deletion = "
+        DELETE FROM player_sessions WHERE session_id = ?1
+    ";
+
+    tx.prepare(deletion)?
+        .execute(&[&id])?;
+
+    // Iterate through new player_sessions and insert
+    // them into table
+    let stmt = "
+        INSERT INTO player_session(player_id, session_id, buyin, walkout)
+        VALUES (?1, ?2, ?3, ?4)
+    ";
+
+    // Iterate over player_sessions and insert a row into
+    // `player_session` table for each
+    {
+        let mut prep_stmt = tx.prepare(stmt)?;
+        player_sessions.iter().for_each(|ps| {
+            let _ = prep_stmt.insert(&[
+                &ps.player_id,
+                &id as &dyn ToSql,
+                &ps.buyin,
+                &ps.walkout,
+            ]);
+        });
+    }
+
+    tx.commit()?;
+
+    Ok(Responses::Ok)
 }
