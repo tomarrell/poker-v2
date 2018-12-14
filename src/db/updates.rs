@@ -100,7 +100,7 @@ pub fn modify_session(
     // Delete all the old player_sessions
     // TODO: In future, event sourcing?
     let deletion = "
-        DELETE FROM player_sessions WHERE session_id = ?1
+        DELETE FROM player_session WHERE session_id = ?1
     ";
 
     tx.prepare(deletion)?
